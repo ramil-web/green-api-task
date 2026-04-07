@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>GREEN-API WA</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; padding: 40px; gap: 50px; justify-content: center; }
+        .input-panel { width: 350px; display: flex; flex-direction: column; gap: 15px; }
+        .output-panel { width: 450px; display: flex; flex-direction: column; gap: 10px; }
+        input, button { padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 14px; width: 100%; box-sizing: border-box; }
+        button { background-color: #f0f0f0; cursor: pointer; transition: 0.2s; }
+        button:hover { background-color: #e0e0e0; }
+        .response-box { border: 1px solid #ccc; height: 500px; padding: 15px; overflow-y: auto; background: #fff; white-space: pre-wrap; font-family: monospace; font-size: 13px; }
+        h4 { margin: 0; color: #333; }
+    </style>
+</head>
+<body>
+<div class="input-panel">
+    <input type="text" id="idInstance" placeholder="idInstance">
+    <input type="text" id="apiTokenInstance" placeholder="apiTokenInstance">
+
+    <button onclick="callApi('getSettings')">getSettings</button>
+    <button onclick="callApi('getStateInstance')">getStateInstance</button>
+
+    <div style="margin-top: 20px;">
+        <input type="text" id="chatId" placeholder="77771234567">
+        <input type="text" id="message" placeholder="Hello World!">
+        <button onclick="callApi('sendMessage')">sendMessage</button>
+    </div>
+
+    <div style="margin-top: 20px;">
+        <input type="text" id="fileChatId" placeholder="77771234567">
+        <input type="text" id="urlFile" placeholder="https://my.site.com/img/horse.png">
+        <button onclick="callApi('sendFileByUrl')">sendFileByUrl</button>
+    </div>
+</div>
+
+<div class="output-panel">
+    <h4>Ответ:</h4>
+    <div class="response-box" id="response"></div>
+</div>
+
+<script>
+    async function callApi(method) {
+        const out = document.getElementById('response');
+        out.innerText = "Загрузка...";
+
+        const payload = {
+            idInstance: document.getElementById('idInstance').value,
+            apiTokenInstance: document.getElementById('apiTokenInstance').value,
+            chatId: (method === 'sendMessage') ? document.getElementById('chatId').value : document.getElementById('fileChatId').value,
+            message: document.getElementById('message').value,
+            urlFile: document.getElementById('urlFile').value,
+            fileName: 'file_from_go'
+        };
+
+        try {
+            // ВАЖНО: проверяем путь /api/method
+            const res = await fetch(`/api/method?name=${method}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const text = await res.text();
+            try {
+                const json = JSON.parse(text);
+                out.innerText = JSON.stringify(json, null, 4);
+            } catch(e) {
+                out.innerText = "Сервер вернул не JSON:\n" + text;
+            }
+        } catch (err) {
+            out.innerText = "Ошибка сети: " + err.message;
+        }
+    }
+</script>
+</body>
+</html>
